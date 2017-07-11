@@ -1,0 +1,36 @@
+---
+name: vault
+
+instance_groups:
+- instances: ((VAULT_INSTANCES))
+  name: vault
+  networks: [{name: ((VAULT_NW_NAME)), static_ips: ((VAULT_STATIC_IP)), default: [dns, gateway]}]
+  persistent_disk: 4096
+  properties:
+    vault:
+      backend:
+        use_file: true
+      ha:
+        redirect: null
+  vm_type: ((VAULT_VM_TYPE))
+  stemcell: trusty
+  azs: [((VAULT_AZ_NAME))]
+  jobs:
+  - name: vault
+    release: vault
+
+releases:
+- name: vault
+  version: latest
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: ((SC_VERSION))
+
+update:
+  canaries: 1
+  canary_watch_time: 1000-30000
+  max_in_flight: 50
+  serial: false
+  update_watch_time: 1000-30000

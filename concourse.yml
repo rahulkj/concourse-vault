@@ -1,0 +1,85 @@
+---
+name: concourse
+
+releases:
+- name: concourse
+  version: latest
+- name: garden-runc
+  version: latest
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: ((SC_VERSION))
+
+instance_groups:
+- name: web
+  instances: 1
+  vm_type: micro.disk
+  stemcell: trusty
+  azs: [((CONCOURSE_AZ_NAME))]
+  networks: [{name: ((CONCOURSE_NW_NAME)), static_ips: ((STATIC_IP)), default: [dns, gateway]}]
+  jobs:
+  - name: atc
+    release: concourse
+    properties:
+      external_url: ((CONCOURSE_EXTERNAL_URL))
+      basic_auth_username: admin
+      basic_auth_password: admin
+      postgresql_database: &atc_db atc
+      bind_port: 80
+      vault:
+        path_prefix: ((CONCOURSE_VAULT_MOUNT))
+        url: ((VAULT_ADDR))
+        auth:
+          client_token: ((CLIENT_TOKEN))
+          # backend: ((BACKEND_ROLE))
+          # params:
+          #   role_id: ((ROLE_ID))
+          #   secret_id: ((SECRET_ID))
+  - name: tsa
+    release: concourse
+    properties: {}
+
+- name: db
+  instances: 1
+  vm_type: small.disk
+  stemcell: trusty
+  persistent_disk_type: 10240
+  azs: [((CONCOURSE_AZ_NAME))]
+  networks: [{name: ((CONCOURSE_NW_NAME))}]
+  jobs:
+  - name: postgresql
+    release: concourse
+    properties:
+      databases:
+      - name: *atc_db
+        role: atc
+        password: password
+
+- name: worker
+  instances: 1
+  vm_type: xlarge.disk
+  stemcell: trusty
+  azs: [((CONCOURSE_AZ_NAME))]
+  networks: [{name: ((CONCOURSE_NW_NAME))}]
+  jobs:
+  - name: groundcrew
+    release: concourse
+    properties: {}
+  - name: baggageclaim
+    release: concourse
+    properties: {}
+  - name: garden
+    release: garden-runc
+    properties:
+      garden:
+        listen_network: tcp
+        listen_address: 0.0.0.0:7777
+
+update:
+  canaries: 1
+  max_in_flight: 3
+  serial: false
+  canary_watch_time: 1000-120000
+  update_watch_time: 1000-120000
