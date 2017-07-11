@@ -1,5 +1,5 @@
-DEPLOY CONCOURSE with BOSH
---------------------------
+Deploy Concourse with Vault as Credential Manager
+-------------------------------------------------
 
 -	Deploy Vault release using the [vault.yml](./vault.yml)
 -	Create a mount in value for use by concourse pipelines`vault mount -path=$CONCOURSE_VAULT_MOUNT -description="Secrets for use by concourse pipelines" generic`
