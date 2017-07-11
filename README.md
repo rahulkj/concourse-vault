@@ -15,7 +15,7 @@ path "concourse/*" {
 }
 ```
 
--	Register the [policy](./vault-policy.yml) with vault `vault policy-write policy-name vault-policy.hcl`
+-	Register the [policy](./vault-policy.hcl) with vault `vault policy-write policy-name vault-policy.hcl`
 
 If - Using Periodic Token for Authentication
 --------------------------------------------
